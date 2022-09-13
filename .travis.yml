@@ -1,3 +1,4 @@
+language: generic 
 sudo: required
 services:
   - docker
@@ -6,10 +7,15 @@ before_install:
   - docker build -t ancosta/react-test -f ./client/Dockerfile.dev ./client
 
 script:
-  - docker run ancosta/react-test npm test -- --coverage
+  - docker run -e CI=true ancosta/react-test npm test
 
 after_success:
   - docker build -t ancosta/multi-client ./client
   - docker build -t ancosta/multi-nginx ./nginx
   - docker build -t ancosta/multi-server ./server
   - docker build -t ancosta/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push ancosta/multi-client
+  - docker push ancosta/multi-nginx
+  - docker push ancosta/multi-server
+  - docker push ancosta/multi-worker
